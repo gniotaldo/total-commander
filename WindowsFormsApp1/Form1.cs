@@ -15,13 +15,12 @@ namespace WindowsFormsApp1
     public partial class Form1 : Form
     {
         private int minimumColumnWidth = 40;
-        private double ratio1;
-        private double ratio2;
         private string path1;
         private string path2;
+        private int clickedColumnIndex = -1;
+        private int listView1sorted = 0;
+        private int listView2sorted = 0;
 
-        
-            
         public Form1()
         {
             InitializeComponent();
@@ -30,45 +29,59 @@ namespace WindowsFormsApp1
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            //autosize
+            Autosize();
+            LoadDrives(comboBox1);
+            LoadDrives(comboBox2);
+            LoadDIR(listView1);
+            LoadDIR(listView2);
+
+            comboBox1.SelectedIndexChanged += comboBox_SelectedIndexChanged;
+            comboBox2.SelectedIndexChanged += comboBox_SelectedIndexChanged;
+            SizeChanged += Form1_SizeChanged;
+            listView1.ItemActivate += ListView_ItemActivate;
+            listView1.ColumnWidthChanging += ListView_ColumnWidthChanging;
+            listView1.ColumnWidthChanged += ListView_ColumnWidthChanged;
+            listView2.ItemActivate += ListView_ItemActivate;
+            listView2.ColumnWidthChanging += ListView_ColumnWidthChanging;
+            listView2.ColumnWidthChanged += ListView_ColumnWidthChanged;
+            listView1.ColumnClick += ListView_ColumnClick;
+            listView2.ColumnClick += ListView_ColumnClick;
+        }
+
+        private void Autosize()
+        {
             int listSize = (ClientSize.Width - 74) / 2;
             listView1.Width = listSize;
             listView2.Width = listSize;
+            listView1.Left = 12;
             listView2.Left = listView1.Right + 50;
             label2.Left = listView2.Left;
             label1.Left = listView1.Left;
-
-            SizeChanged += Form1_SizeChanged;
-
-            //left list
-            int list0Width = listView1.ClientSize.Width;
-            listView1.Columns[0].Width = list0Width * 3 / 4;
-            listView1.Columns[1].Width = list0Width * 1 / 4;
-            ratio1 = (double)listView1.Columns[0].Width / listView1.Width;
-            label1.Left = listView1.Left; 
-            ShowDIR(@"C:\", listView1);
-            path1 = @"C:\";
-
-            listView1.ColumnWidthChanging += ListView_ColumnWidthChanging;
-            listView1.ColumnWidthChanged += ListView1_ColumnWidthChanged;
-            listView1.ItemActivate += ListView_ItemActivate;
-
-
-            //right list
-            int list1Width = listView2.ClientSize.Width;
-            listView2.Columns[0].Width = list1Width * 3 / 4;
-            listView2.Columns[1].Width = list1Width * 1 / 4;
-            ratio2 = (double)listView2.Columns[0].Width / listView2.Width;
-            label2.Left = listView2.Left;
-            ShowDIR(@"D:\", listView2);
-            path2 = @"D:\";
-
-            listView2.ItemActivate += ListView_ItemActivate;
-            listView2.ColumnWidthChanging += ListView_ColumnWidthChanging;
-            listView2.ColumnWidthChanged += ListView2_ColumnWidthChanged;
-            
+            label1.MaximumSize = new Size(listSize - 41, 15);
+            label2.MaximumSize = new Size(listSize - 41, 15);
+            comboBox1.Location = new Point(listView1.Right - comboBox1.Width, comboBox1.Top);
+            comboBox2.Location = new Point(listView2.Right - comboBox2.Width, comboBox2.Top);
         }
-        
+
+        private void LoadDIR(ListView listView)
+        {
+            int listWidth = listView.ClientSize.Width;
+            listView.Columns[0].Width = listWidth * 3 / 4;
+            listView.Columns[1].Width = listWidth * 1 / 4;
+            listView.Tag = (double)listView.Columns[0].Width / listView.Width;
+            ShowDIR(comboBox1.SelectedItem.ToString(), listView);
+        }
+        private void LoadDrives(ComboBox comboBox)
+        {
+            comboBox.Items.Clear();
+            DriveInfo[] drives = DriveInfo.GetDrives();
+            foreach (DriveInfo drive in drives)
+            {
+                comboBox.Items.Add(drive.Name);
+            }
+            comboBox.SelectedIndex = 0;
+        }
+
 
         private void ListView_ColumnWidthChanging(object sender, ColumnWidthChangingEventArgs e)
         {
@@ -78,32 +91,24 @@ namespace WindowsFormsApp1
                 e.Cancel = true;
                 e.NewWidth = listView.Columns[1].Width;
             }
-            if (e.NewWidth < minimumColumnWidth)
+            else if (e.NewWidth < minimumColumnWidth)
             {
                 e.Cancel = true;
                 e.NewWidth = minimumColumnWidth;
             }
-            if (e.NewWidth > listView.ClientSize.Width - minimumColumnWidth)
+            else if (e.NewWidth > listView.ClientSize.Width - minimumColumnWidth)
             {
                 e.Cancel = true;
                 e.NewWidth = listView.ClientSize.Width - minimumColumnWidth;
             }
         }
-        private void ListView1_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
+        private void ListView_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
         {
+            ListView listView = (ListView)sender;
             if (e.ColumnIndex == 0)
             {
-                listView1.Columns[1].Width = listView1.ClientSize.Width - listView1.Columns[0].Width;
-                ratio1 = (double)listView1.Columns[0].Width / listView1.Width;
-            }
-        }
-        
-        private void ListView2_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
-        {
-            if (e.ColumnIndex == 0)
-            {
-                listView2.Columns[1].Width = listView2.ClientSize.Width - listView2.Columns[0].Width;
-                ratio2 = (double)listView2.Columns[0].Width / listView2.Width;
+                listView.Columns[1].Width = listView.ClientSize.Width - listView.Columns[0].Width;
+                listView.Tag = (double)listView.Columns[0].Width / listView.Width;
             }
         }
 
@@ -114,32 +119,34 @@ namespace WindowsFormsApp1
             listView2.Width = listSize;
             listView2.Left = listView1.Right + 50;
             label2.Left = listView2.Left;
-            
+            comboBox1.Location = new Point(listView1.Right - comboBox1.Width, comboBox1.Top);
+            comboBox2.Location = new Point(listView2.Right - comboBox2.Width, comboBox2.Top);
+            label1.MaximumSize = new Size(listSize - 41, 15);
+            label2.MaximumSize = new Size(listSize - 41, 15);
 
-            if ((int)(listSize * ratio1) >= minimumColumnWidth)
+
+            if ((int)(listSize * (double)listView1.Tag) >= minimumColumnWidth)
             {
-                listView1.Columns[0].Width = (int)(listSize * ratio1);
+                listView1.Columns[0].Width = (int)(listSize * (double)listView1.Tag);
             }
             else
             {
                 listView1.Columns[0].Width = minimumColumnWidth;
             }
             listView1.Columns[1].Width = listSize - listView1.Columns[0].Width - 5;
-        
-            if ((int)(listSize * ratio2) >= minimumColumnWidth)
+
+            if ((int)(listSize * (double)listView2.Tag) >= minimumColumnWidth)
             {
-                listView2.Columns[0].Width = (int)(listSize * ratio2);
+                listView2.Columns[0].Width = (int)(listSize * (double)listView2.Tag);
             }
             else
             {
                 listView2.Columns[0].Width = minimumColumnWidth;
             }
             listView2.Columns[1].Width = listSize - listView2.Columns[0].Width - 5;
-
-           
         }
 
-        
+
         private void listView1_SelectedIndexChanged(object sender, EventArgs e)
         {
 
@@ -150,19 +157,23 @@ namespace WindowsFormsApp1
 
         }
 
+       
         private void ShowDIR(string directoryPath, ListView listView)
         {
+            listView1sorted = 0;
+            listView2sorted = 0;
             listView.Items.Clear();
             if (listView == listView1)
             {
-                
                 label1.Text = "Path: " + directoryPath;
                 path1 = directoryPath;
+                toolTip1.SetToolTip(label1, directoryPath);
             }
-            else if (listView == listView2)
+            else
             {
                 label2.Text = "Path: " + directoryPath;
                 path2 = directoryPath;
+                toolTip2.SetToolTip(label2, directoryPath);
             }
 
 
@@ -199,30 +210,15 @@ namespace WindowsFormsApp1
             ListViewItem item = listView.SelectedItems[0];
             string itemName = item.Text;
             string itemPath;
-            if (listView == listView1)
-            {
-                itemPath = Path.Combine(path1, itemName);
-            }
-            else
-            {
-                itemPath = Path.Combine(path2, itemName);
-            }
+            itemPath = listView == listView1 ? Path.Combine(path1, itemName): Path.Combine(path2, itemName);
 
             if (Directory.Exists(itemPath))
             {
-                
                 try
                 {
                     if (itemName == "..")
                     {
-                        if(listView == listView1)
-                        {
-                            itemPath = Directory.GetParent(path1).FullName;
-                        }
-                        else
-                        {
-                            itemPath = Directory.GetParent(path2).FullName;
-                        }
+                        itemPath = listView == listView1 ? Directory.GetParent(path1).FullName : Directory.GetParent(path2).FullName;
                     }
                     ShowDIR(itemPath, listView);
                 }
@@ -237,6 +233,87 @@ namespace WindowsFormsApp1
             {
                 Process.Start(itemPath);
             }
+        }
+
+        
+        private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ComboBox comboBox = (ComboBox)sender;
+            string selectedDrive = comboBox.SelectedItem.ToString();
+
+            if (comboBox == comboBox1)
+            {
+                path1 = selectedDrive;
+                ShowDIR(path1, listView1);
+            }
+            else if (comboBox == comboBox2)
+            {
+                path2 = selectedDrive;
+                ShowDIR(path2, listView2);
+            }
+        }
+        private void ListView_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            ListView listView = (ListView)sender;
+            clickedColumnIndex = e.Column;
+            SortList(listView);
+        }
+
+        private void SortList(ListView listView)
+        {
+            ListViewItem parent = null;
+            int itemCount = listView.Items.Count;
+            int sortedBy = listView == listView1 ? listView1sorted : listView2sorted;
+            if (itemCount <= 1) return;
+            if (listView.Items[0].Text == "..")
+            {
+                parent = listView.Items[0];
+                listView.Items.Remove(parent);
+                itemCount -= 1;
+            }
+            if (clickedColumnIndex == sortedBy)
+            {
+                for (int i = itemCount - 2; i >= 0; i--)
+                {
+                    ListViewItem item = listView.Items[i];
+                    listView.Items.Remove(item);
+                    listView.Items.Add(item);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < itemCount - 1; i++)
+                {
+                    for (int j = 0; j < itemCount - 1 - i; j++)
+                    {
+                        ListViewItem currentItem = listView.Items[j];
+                        ListViewItem nextItem = listView.Items[j + 1];
+                        string currentText = currentItem.SubItems[clickedColumnIndex].Text;
+                        string nextText = nextItem.SubItems[clickedColumnIndex].Text;
+                        if (currentItem.ImageKey == nextItem.ImageKey)
+                        {
+                            if (string.Compare(currentText, nextText) > 0)
+                            {
+                                listView.Items.Remove(currentItem);
+                                listView.Items.Insert(j + 1, currentItem);
+                            }
+                        }
+                    }
+                }
+            }
+            if (listView == listView1)
+            {
+                listView1sorted = clickedColumnIndex;
+            }
+            else
+            {
+                listView2sorted = clickedColumnIndex;
+            }
+            if (parent != null)
+            {
+                listView.Items.Insert(0, parent);
+            }
+            
         }
     }
 }
