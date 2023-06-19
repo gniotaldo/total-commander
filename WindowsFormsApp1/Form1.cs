@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
+using Microsoft.VisualBasic;
+
 
 namespace WindowsFormsApp1
 {
@@ -20,6 +22,9 @@ namespace WindowsFormsApp1
         private int clickedColumnIndex = -1;
         private int listView1sorted = 0;
         private int listView2sorted = 0;
+        private string folderName=".";
+        private string folderPath=".";
+        private ListView lastClickedListView;
 
         public Form1()
         {
@@ -29,6 +34,7 @@ namespace WindowsFormsApp1
 
         private void Form1_Load(object sender, EventArgs e)
         {
+
             Autosize();
             LoadDrives(comboBox1);
             LoadDrives(comboBox2);
@@ -46,6 +52,13 @@ namespace WindowsFormsApp1
             listView2.ColumnWidthChanged += ListView_ColumnWidthChanged;
             listView1.ColumnClick += ListView_ColumnClick;
             listView2.ColumnClick += ListView_ColumnClick;
+            listView1.KeyDown += listView_KeyDown;
+            listView2.KeyDown += listView_KeyDown;
+            textBox1.KeyPress += textBox1_KeyPress;
+            listView1.Click += listView1_Click;
+            listView2.Click += listView2_Click;
+
+
         }
 
         private void Autosize()
@@ -61,7 +74,11 @@ namespace WindowsFormsApp1
             label2.MaximumSize = new Size(listSize - 41, 15);
             comboBox1.Location = new Point(listView1.Right - comboBox1.Width, comboBox1.Top);
             comboBox2.Location = new Point(listView2.Right - comboBox2.Width, comboBox2.Top);
+            panel1.Visible = false;
+            pictureBox1.Left = listView1.Right+5;
+            pictureBox2.Left = listView1.Right+5;
         }
+
 
         private void LoadDIR(ListView listView)
         {
@@ -80,6 +97,16 @@ namespace WindowsFormsApp1
                 comboBox.Items.Add(drive.Name);
             }
             comboBox.SelectedIndex = 0;
+        }
+
+        private void listView1_Click(object sender, EventArgs e)
+        {
+            lastClickedListView = listView1;
+        }
+
+        private void listView2_Click(object sender, EventArgs e)
+        {
+            lastClickedListView = listView2;
         }
 
 
@@ -146,16 +173,6 @@ namespace WindowsFormsApp1
             listView2.Columns[1].Width = listSize - listView2.Columns[0].Width - 5;
         }
 
-
-        private void listView1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void listView2_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
 
        
         private void ShowDIR(string directoryPath, ListView listView)
@@ -315,5 +332,104 @@ namespace WindowsFormsApp1
             }
             
         }
+        
+        private void listView_KeyDown(object sender, KeyEventArgs e)
+        {
+            ListView listView = (ListView)sender;
+
+            if (e.KeyCode == Keys.F8)
+            {
+                RemoveSelectedItems();
+            }
+            else if (e.KeyCode == Keys.F7)
+            {
+
+                folderPath = listView == listView1 ? path1 : path2;
+                panel1.Visible = true;
+            }
+        }
+
+ 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            folderName = textBox1.Text;
+            string newFolderPath = Path.Combine(folderPath, folderName); // Połącz ścieżkę folderu z nazwą nowego folderu
+
+            try
+            {
+                Directory.CreateDirectory(newFolderPath);
+                // Dodaj kod do odświeżenia listy lub wykonania innych operacji po utworzeniu nowego folderu
+            }
+            catch (Exception ex)
+            {
+                // Obsłuż wyjątek, jeśli nie uda się utworzyć nowego folderu
+                MessageBox.Show("Wystąpił błąd podczas tworzenia folderu: " + ex.Message);
+            }
+            textBox1.Text = string.Empty;
+            panel1.Visible = false;
+            ShowDIR(path1, listView1);
+            ShowDIR(path2, listView2);
+
+        }
+        private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                button1_Click(sender, e); // Wywołanie metody button1_Click
+                e.Handled = true; // Zatrzymanie dalszej obsługi klawisza Enter
+            }
+        }
+        private void RemoveSelectedItems()
+        {
+            
+            var selectedItems = lastClickedListView.SelectedItems.Cast<ListViewItem>().ToList();
+            string folderPath = lastClickedListView == listView1 ? path1 : path2;
+
+            foreach (ListViewItem selectedItem in selectedItems)
+            {
+                string fileName = selectedItem.SubItems[0].Text;
+                string itemPath = Path.Combine(folderPath, fileName);
+
+                if (File.Exists(itemPath))
+                {
+                    try
+                    {
+                        File.Delete(itemPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error: " + ex.Message);
+                    }
+                }
+                else if (Directory.Exists(itemPath))
+                {
+                    try
+                    {
+                        Directory.Delete(itemPath, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error: " + ex.Message);
+                    }
+                }
+            }
+            ShowDIR(path1, listView1);
+            ShowDIR(path2, listView2);
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            if (lastClickedListView != null)
+            {
+                folderPath = lastClickedListView == listView1 ? path1 : path2;
+                panel1.Visible = true;
+            }
+        }
+
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+            RemoveSelectedItems();
+        }
     }
+
 }
