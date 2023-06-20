@@ -16,14 +16,14 @@ namespace WindowsFormsApp1
 {
     public partial class Form1 : Form
     {
-        private int minimumColumnWidth = 40;
+        private readonly int minimumColumnWidth = 40;
         private string path1;
         private string path2;
         private int clickedColumnIndex = -1;
         private int listView1sorted = 0;
         private int listView2sorted = 0;
-        private string folderName=".";
-        private string folderPath=".";
+        private string folderName = ".";
+        private string folderPath = ".";
         private ListView lastClickedListView;
 
         public Form1()
@@ -41,8 +41,8 @@ namespace WindowsFormsApp1
             LoadDIR(listView1);
             LoadDIR(listView2);
 
-            comboBox1.SelectedIndexChanged += comboBox_SelectedIndexChanged;
-            comboBox2.SelectedIndexChanged += comboBox_SelectedIndexChanged;
+            comboBox1.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
+            comboBox2.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
             SizeChanged += Form1_SizeChanged;
             listView1.ItemActivate += ListView_ItemActivate;
             listView1.ColumnWidthChanging += ListView_ColumnWidthChanging;
@@ -52,11 +52,11 @@ namespace WindowsFormsApp1
             listView2.ColumnWidthChanged += ListView_ColumnWidthChanged;
             listView1.ColumnClick += ListView_ColumnClick;
             listView2.ColumnClick += ListView_ColumnClick;
-            listView1.KeyDown += listView_KeyDown;
-            listView2.KeyDown += listView_KeyDown;
-            textBox1.KeyPress += textBox1_KeyPress;
-            listView1.Click += listView1_Click;
-            listView2.Click += listView2_Click;
+            listView1.KeyDown += ListView_KeyDown;
+            listView2.KeyDown += ListView_KeyDown;
+            textBox1.KeyPress += TextBox1_KeyPress;
+            listView1.Click += ListView1_Click;
+            listView2.Click += ListView2_Click;
 
 
         }
@@ -75,8 +75,8 @@ namespace WindowsFormsApp1
             comboBox1.Location = new Point(listView1.Right - comboBox1.Width, comboBox1.Top);
             comboBox2.Location = new Point(listView2.Right - comboBox2.Width, comboBox2.Top);
             panel1.Visible = false;
-            pictureBox1.Left = listView1.Right+5;
-            pictureBox2.Left = listView1.Right+5;
+            pictureBox1.Left = listView1.Right + 5;
+            pictureBox2.Left = listView1.Right + 5;
         }
 
 
@@ -99,12 +99,12 @@ namespace WindowsFormsApp1
             comboBox.SelectedIndex = 0;
         }
 
-        private void listView1_Click(object sender, EventArgs e)
+        private void ListView1_Click(object sender, EventArgs e)
         {
             lastClickedListView = listView1;
         }
 
-        private void listView2_Click(object sender, EventArgs e)
+        private void ListView2_Click(object sender, EventArgs e)
         {
             lastClickedListView = listView2;
         }
@@ -150,6 +150,8 @@ namespace WindowsFormsApp1
             comboBox2.Location = new Point(listView2.Right - comboBox2.Width, comboBox2.Top);
             label1.MaximumSize = new Size(listSize - 41, 15);
             label2.MaximumSize = new Size(listSize - 41, 15);
+            pictureBox1.Left = listView1.Right + 5;
+            pictureBox2.Left = listView1.Right + 5;
 
 
             if ((int)(listSize * (double)listView1.Tag) >= minimumColumnWidth)
@@ -174,7 +176,7 @@ namespace WindowsFormsApp1
         }
 
 
-       
+
         private void ShowDIR(string directoryPath, ListView listView)
         {
             listView1sorted = 0;
@@ -227,7 +229,7 @@ namespace WindowsFormsApp1
             ListViewItem item = listView.SelectedItems[0];
             string itemName = item.Text;
             string itemPath;
-            itemPath = listView == listView1 ? Path.Combine(path1, itemName): Path.Combine(path2, itemName);
+            itemPath = listView == listView1 ? Path.Combine(path1, itemName) : Path.Combine(path2, itemName);
 
             if (Directory.Exists(itemPath))
             {
@@ -252,8 +254,8 @@ namespace WindowsFormsApp1
             }
         }
 
-        
-        private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
+
+        private void ComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             ComboBox comboBox = (ComboBox)sender;
             string selectedDrive = comboBox.SelectedItem.ToString();
@@ -330,10 +332,10 @@ namespace WindowsFormsApp1
             {
                 listView.Items.Insert(0, parent);
             }
-            
+
         }
-        
-        private void listView_KeyDown(object sender, KeyEventArgs e)
+
+        private void ListView_KeyDown(object sender, KeyEventArgs e)
         {
             ListView listView = (ListView)sender;
 
@@ -345,12 +347,13 @@ namespace WindowsFormsApp1
             {
 
                 folderPath = listView == listView1 ? path1 : path2;
+                panel1.Left = ClientSize.Width / 2 - 110;
                 panel1.Visible = true;
             }
         }
 
- 
-        private void button1_Click(object sender, EventArgs e)
+
+        private void Button1_Click(object sender, EventArgs e)
         {
             folderName = textBox1.Text;
             string newFolderPath = Path.Combine(folderPath, folderName); // Połącz ścieżkę folderu z nazwą nowego folderu
@@ -371,17 +374,17 @@ namespace WindowsFormsApp1
             ShowDIR(path2, listView2);
 
         }
-        private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
+        private void TextBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)Keys.Enter)
             {
-                button1_Click(sender, e); // Wywołanie metody button1_Click
+                Button1_Click(sender, e); // Wywołanie metody button1_Click
                 e.Handled = true; // Zatrzymanie dalszej obsługi klawisza Enter
             }
         }
         private void RemoveSelectedItems()
         {
-            
+
             var selectedItems = lastClickedListView.SelectedItems.Cast<ListViewItem>().ToList();
             string folderPath = lastClickedListView == listView1 ? path1 : path2;
 
@@ -401,7 +404,7 @@ namespace WindowsFormsApp1
                         MessageBox.Show("Error: " + ex.Message);
                     }
                 }
-                else if (Directory.Exists(itemPath))
+                else if (Directory.Exists(itemPath) && fileName != "..")
                 {
                     try
                     {
@@ -417,19 +420,22 @@ namespace WindowsFormsApp1
             ShowDIR(path2, listView2);
         }
 
-        private void pictureBox1_Click(object sender, EventArgs e)
+        private void PictureBox1_Click(object sender, EventArgs e)
         {
             if (lastClickedListView != null)
             {
                 folderPath = lastClickedListView == listView1 ? path1 : path2;
+                panel1.Left = ClientSize.Width / 2 - 110;
                 panel1.Visible = true;
             }
         }
 
-        private void pictureBox2_Click(object sender, EventArgs e)
+        private void PictureBox2_Click(object sender, EventArgs e)
         {
             RemoveSelectedItems();
         }
-    }
 
+
+
+    }
 }

@@ -181,13 +181,13 @@ namespace WindowsFormsApp1
             this.button1.TabIndex = 9;
             this.button1.Text = "OK";
             this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.button1.Click += new System.EventHandler(this.Button1_Click);
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(4, 6);
+            this.progressBar1.Location = new System.Drawing.Point(0, 0);
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(216, 130);
+            this.progressBar1.Size = new System.Drawing.Size(220, 130);
             this.progressBar1.TabIndex = 10;
             // 
             // panel1
@@ -198,7 +198,7 @@ namespace WindowsFormsApp1
             this.panel1.Controls.Add(this.progressBar1);
             this.panel1.Location = new System.Drawing.Point(522, 159);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(223, 136);
+            this.panel1.Size = new System.Drawing.Size(220, 130);
             this.panel1.TabIndex = 11;
             // 
             // pictureBox1
@@ -210,7 +210,7 @@ namespace WindowsFormsApp1
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 11;
             this.pictureBox1.TabStop = false;
-            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
+            this.pictureBox1.Click += new System.EventHandler(this.PictureBox1_Click);
             // 
             // pictureBox2
             // 
@@ -222,7 +222,7 @@ namespace WindowsFormsApp1
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox2.TabIndex = 12;
             this.pictureBox2.TabStop = false;
-            this.pictureBox2.Click += new System.EventHandler(this.pictureBox2_Click);
+            this.pictureBox2.Click += new System.EventHandler(this.PictureBox2_Click);
             // 
             // Form1
             // 
