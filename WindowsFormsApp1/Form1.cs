@@ -55,8 +55,8 @@ namespace WindowsFormsApp1
             listView1.KeyDown += ListView_KeyDown;
             listView2.KeyDown += ListView_KeyDown;
             textBox1.KeyPress += TextBox1_KeyPress;
-            listView1.Click += ListView1_Click;
-            listView2.Click += ListView2_Click;
+            listView1.MouseDown += ListView1_MouseDown;
+            listView2.MouseDown += ListView2_MouseDown;
 
 
         }
@@ -92,6 +92,7 @@ namespace WindowsFormsApp1
         {
             comboBox.Items.Clear();
             DriveInfo[] drives = DriveInfo.GetDrives();
+            drives = drives.Where(d => d.DriveType != DriveType.CDRom).ToArray();
             foreach (DriveInfo drive in drives)
             {
                 comboBox.Items.Add(drive.Name);
@@ -99,12 +100,12 @@ namespace WindowsFormsApp1
             comboBox.SelectedIndex = 0;
         }
 
-        private void ListView1_Click(object sender, EventArgs e)
+        private void ListView1_MouseDown(object sender, EventArgs e)
         {
             lastClickedListView = listView1;
         }
 
-        private void ListView2_Click(object sender, EventArgs e)
+        private void ListView2_MouseDown(object sender, EventArgs e)
         {
             lastClickedListView = listView2;
         }
@@ -179,20 +180,21 @@ namespace WindowsFormsApp1
 
         private void ShowDIR(string directoryPath, ListView listView)
         {
-            listView1sorted = 0;
-            listView2sorted = 0;
+            
             listView.Items.Clear();
             if (listView == listView1)
             {
                 label1.Text = "Path: " + directoryPath;
                 path1 = directoryPath;
                 toolTip1.SetToolTip(label1, directoryPath);
+                listView1sorted = 0;
             }
             else
             {
                 label2.Text = "Path: " + directoryPath;
                 path2 = directoryPath;
                 toolTip2.SetToolTip(label2, directoryPath);
+                listView2sorted = 0;
             }
 
 
@@ -348,6 +350,7 @@ namespace WindowsFormsApp1
 
                 folderPath = listView == listView1 ? path1 : path2;
                 panel1.Left = ClientSize.Width / 2 - 110;
+                textBox1.Text = string.Empty;
                 panel1.Visible = true;
             }
         }
@@ -356,20 +359,18 @@ namespace WindowsFormsApp1
         private void Button1_Click(object sender, EventArgs e)
         {
             folderName = textBox1.Text;
-            string newFolderPath = Path.Combine(folderPath, folderName); // Połącz ścieżkę folderu z nazwą nowego folderu
+            string newFolderPath = Path.Combine(folderPath, folderName);
+            panel1.Visible = false;
 
             try
             {
                 Directory.CreateDirectory(newFolderPath);
-                // Dodaj kod do odświeżenia listy lub wykonania innych operacji po utworzeniu nowego folderu
             }
             catch (Exception ex)
             {
-                // Obsłuż wyjątek, jeśli nie uda się utworzyć nowego folderu
-                MessageBox.Show("Wystąpił błąd podczas tworzenia folderu: " + ex.Message);
+                MessageBox.Show("Error: " + ex.Message);
+                return;
             }
-            textBox1.Text = string.Empty;
-            panel1.Visible = false;
             ShowDIR(path1, listView1);
             ShowDIR(path2, listView2);
 
@@ -378,8 +379,8 @@ namespace WindowsFormsApp1
         {
             if (e.KeyChar == (char)Keys.Enter)
             {
-                Button1_Click(sender, e); // Wywołanie metody button1_Click
-                e.Handled = true; // Zatrzymanie dalszej obsługi klawisza Enter
+                Button1_Click(sender, e);
+                e.Handled = true;
             }
         }
         private void RemoveSelectedItems()
@@ -426,6 +427,7 @@ namespace WindowsFormsApp1
             {
                 folderPath = lastClickedListView == listView1 ? path1 : path2;
                 panel1.Left = ClientSize.Width / 2 - 110;
+                textBox1.Text = string.Empty;
                 panel1.Visible = true;
             }
         }
@@ -434,8 +436,5 @@ namespace WindowsFormsApp1
         {
             RemoveSelectedItems();
         }
-
-
-
     }
 }
